@@ -1,0 +1,3 @@
+Place your admission.csv dataset in this folder.
+Expected columns: admit, gre, gpa, prestige.
+Rename the commonly used binary.csv file to admission.csv if applicable.
