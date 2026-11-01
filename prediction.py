@@ -1,74 +1,73 @@
 import pandas as pd
+
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import make_pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import (
+    r2_score,
+    mean_squared_error,
+    mean_absolute_error
+)
 
 
 def train_model(df):
-    required = ["admit", "gre", "gpa", "prestige"]
-    missing = [col for col in required if col not in df.columns]
 
-    if missing:
-        raise ValueError(f"Missing required columns: {missing}")
+    features = [
+        "GRE Score",
+        "TOEFL Score",
+        "University Rating",
+        "CGPA"
+    ]
 
-    df = df[required].copy()
-    for col in required:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
+    target = "Chance of Admit"
 
-    df = df.dropna(subset=["admit"])
-    X = df[["gre", "gpa", "prestige"]]
-    y = df["admit"]
-
-    valid = X.notna().any(axis=1)
-    X, y = X.loc[valid], y.loc[valid]
-
-    if y.nunique() < 2 or y.value_counts().min() < 2:
-        raise ValueError(
-            "Need at least two admission classes with at least "
-            "two records in each class."
-        )
+    X = df[features]
+    y = df[target]
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
+        X, y, test_size=0.2, random_state=42
     )
 
-    model = make_pipeline(
-        SimpleImputer(strategy="median"),
-        StandardScaler(),
-        LogisticRegression(max_iter=1000)
-    )
+    model = LinearRegression()
+
     model.fit(X_train, y_train)
-    predictions = model.predict(X_test)
 
-    print("\nMODEL EVALUATION")
-    print(f"Accuracy: {accuracy_score(y_test, predictions):.2%}")
-    print("\nClassification Report:")
-    print(classification_report(y_test, predictions, zero_division=0))
+    y_pred = model.predict(X_test)
+
+    print("\n========== MODEL EVALUATION ==========")
+
+    print("R2 Score:", round(r2_score(y_test, y_pred), 4))
+
+    print("Mean Squared Error:",
+          round(mean_squared_error(y_test, y_pred), 4))
+
+    print("Mean Absolute Error:",
+          round(mean_absolute_error(y_test, y_pred), 4))
+
+    print("\nModel Training Completed Successfully!")
 
     return model
 
 
-def predict_admission(model, gre, gpa, prestige):
+def predict_admission(model, gre, toefl, rating, cgpa):
+
     sample = pd.DataFrame([{
-        "gre": gre,
-        "gpa": gpa,
-        "prestige": prestige
+        "GRE Score": gre,
+        "TOEFL Score": toefl,
+        "University Rating": rating,
+        "CGPA": cgpa
     }])
 
     prediction = model.predict(sample)[0]
-    probabilities = model.predict_proba(sample)[0]
-    classes = list(model.named_steps["logisticregression"].classes_)
 
-    print("\nADMISSION PREDICTION")
-    print("Prediction:", "Likely to be admitted" if prediction == 1
-          else "Less likely to be admitted")
+    print("\n========== ADMISSION PREDICTION ==========")
 
-    if 1 in classes:
-        admit_index = classes.index(1)
-        print(
-            f"Estimated admission probability: "
-            f"{probabilities[admit_index]:.2%}"
-        )
+    print("GRE Score:", gre)
+    print("TOEFL Score:", toefl)
+    print("University Rating:", rating)
+    print("CGPA:", cgpa)
+
+    print("Predicted Chance of Admit:",
+          round(prediction, 4))
+
+    print("Predicted Admission Percentage:",
+          round(prediction * 100, 2), "%")
