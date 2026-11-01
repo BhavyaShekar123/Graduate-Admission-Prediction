@@ -3,24 +3,33 @@ from prediction import train_model, predict_admission
 
 
 def main():
+
     data = load_data()
 
-    # Step 1: Explore the dataset and display histograms
+    # Dataset Analysis
     analyze_data(data)
 
-    # Step 2: Train and evaluate the ML model
+    # Model Training and Evaluation
     model = train_model(data)
 
-    # Step 3: Get input and predict admission
-    print("\nEnter student details to predict admission.")
-    gre = float(input("GRE score: "))
-    gpa = float(input("GPA: "))
-    prestige = int(input("University prestige (1-4): "))
+    # Sample Prediction
+    print("\nEnter Student Details")
 
-    if not 1 <= prestige <= 4:
-        raise ValueError("Prestige must be between 1 and 4.")
+    gre = float(input("Enter GRE Score: "))
 
-    predict_admission(model, gre, gpa, prestige)
+    toefl = float(input("Enter TOEFL Score: "))
+
+    rating = int(input("Enter University Rating (1-5): "))
+
+    cgpa = float(input("Enter CGPA: "))
+
+    if not 1 <= rating <= 5:
+        raise ValueError("University Rating must be between 1 and 5.")
+
+    if not 0 <= cgpa <= 10:
+        raise ValueError("CGPA must be between 0 and 10.")
+
+    predict_admission(model, gre, toefl, rating, cgpa)
 
 
 if __name__ == "__main__":
